@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TD Image Download</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        :root {
+            --primary-color: #e60023;
+            --primary-hover: #ad081b;
+            --bg-color: #ffffff;
+            --card-bg: #ffffff;
+            --text-primary: #111111;
+            --text-secondary: #767676;
+            --border-color: #e1e1e1;
+            --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --header-height: 80px;
+            --nav-height: 70px;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: var(--text-primary);
+            padding-bottom: calc(var(--nav-height) + 10px);
+        }
+
+        /* Header Styles */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: var(--header-height);
+            background-color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: var(--shadow);
+            z-index: 1000;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 700px;
+            margin: 0 20px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border-radius: 24px;
+            border: 2px solid var(--border-color);
+            font-size: 16px;
+            background-color: #efefef;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            background-color: white;
+            border-color: var(--primary-color);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 18px;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: var(--header-height);
+            padding: 20px;
+        }
+
+        .page-title {
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Pinterest Masonry Grid */
+        .masonry-grid {
+            column-count: 2;
+            column-gap: 1rem;
+        }
+
+        @media (min-width: 768px) {
+            .masonry-grid {
+                column-count: 3;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .masonry-grid {
+                column-count: 4;
+            }
+        }
+
+        /* Media Card */
+        .media-card {
+            break-inside: avoid;
+            margin-bottom: 1rem;
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .media-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .media-card-image-container {
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .media-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: pointer;
+        }
+
+        .media-video {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: pointer;
+        }
+
+        .media-type-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2;
+        }
+
+        .media-info {
+            padding: 14px;
+        }
+
+        .photographer {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .photographer i {
+            font-size: 12px;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 14px 14px;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .action-btn i {
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        .like-btn.active i {
+            color: var(--primary-color);
+        }
+
+        .save-btn.active i {
+            color: var(--primary-color);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--nav-height);
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 8px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            flex: 1;
+            max-width: 80px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        /* Video Modal */
+        .video-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 90%;
+            max-width: 900px;
+            background-color: #111;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .modal-video {
+            width: 100%;
+            height: auto;
+            max-height: 70vh;
+            display: block;
+        }
+
+        .video-controls {
+            padding: 20px;
+            background-color: #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .video-info {
+            color: white;
+            flex: 1;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            font-size: 20px;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 30px;
+            grid-column: 1 / -1;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+            display: none;
+        }
+
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Tabs */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Saved Items */
+        .saved-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .clear-saved-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .clear-saved-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Download Status */
+        .download-status {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            z-index: 1001;
+        }
+
+        .download-status.show {
+            display: flex;
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .header {
+                padding: 0 10px;
+            }
+            
+            .search-container {
+                margin: 0 10px;
+            }
+            
+            .logo span {
+                display: none;
+            }
+            
+            .nav-text {
+                display: none;
+            }
+            
+            .nav-item {
+                max-width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">
+            <i class="fab fa-pinterest"></i>
+            <span>TD Image Download</span>
+        </div>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search for photos and videos...">
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Home Tab -->
+        <div class="tab-content active" id="homeTab">
+            <h1 class="page-title">Discover</h1>
+            <div class="masonry-grid" id="homeGrid"></div>
+            <div class="loading-spinner" id="homeLoading">
+                <div class="spinner"></div>
+                <p>Loading more content...</p>
+            </div>
+            <div class="empty-state" id="homeEmpty">
+                <i class="fas fa-image"></i>
+                <h3>No content to display</h3>
+                <p>Try searching for something else</p>
+            </div>
+        </div>
+
+        <!-- Search Tab -->
+        <div class="tab-content" id="searchTab">
+            <h1 class="page-title">Search Results</h1>
+            <div class="masonry-grid" id="searchGrid"></div>
+            <div class="loading-spinner" id="searchLoading">
+                <div class="spinner"></div>
+                <p>Searching for content...</p>
+            </div>
+            <div class="empty-state" id="searchEmpty">
+                <i class="fas fa-search"></i>
+                <h3>No results found</h3>
+                <p>Try a different search term</p>
+            </div>
+        </div>
+
+        <!-- Trending Tab -->
+        <div class="tab-content" id="trendingTab">
+            <h1 class="page-title">Trending Now</h1>
+            <div class="masonry-grid" id="trendingGrid"></div>
+            <div class="loading-spinner" id="trendingLoading">
+                <div class="spinner"></div>
+                <p>Loading trending content...</p>
+            </div>
+            <div class="empty-state" id="trendingEmpty">
+                <i class="fas fa-fire"></i>
+                <h3>No trending content</h3>
+                <p>Check back later for trending content</p>
+            </div>
+        </div>
+
+        <!-- Saved Tab -->
+        <div class="tab-content" id="savedTab">
+            <div class="saved-header">
+                <h1 class="page-title">Saved Items</h1>
+                <button class="clear-saved-btn" id="clearSavedBtn">Clear All</button>
+            </div>
+            <div class="masonry-grid" id="savedGrid"></div>
+            <div class="empty-state" id="savedEmpty">
+                <i class="fas fa-bookmark"></i>
+                <h3>No saved items</h3>
+                <p>Save photos and videos to see them here</p>
+            </div>
+        </div>
+
+        <!-- Downloads Tab -->
+        <div class="tab-content" id="downloadsTab">
+            <h1 class="page-title">Downloads</h1>
+            <div class="masonry-grid" id="downloadsGrid"></div>
+            <div class="empty-state" id="downloadsEmpty">
+                <i class="fas fa-download"></i>
+                <h3>No downloads yet</h3>
+                <p>Download photos and videos to see them here</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Video Modal -->
+    <div class="video-modal" id="videoModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <video class="modal-video" id="modalVideo" controls></video>
+            <div class="video-controls">
+                <div class="video-info">
+                    <p id="modalPhotographer"></p>
+                </div>
+                <div class="video-actions">
+                    <button class="action-btn like-btn" id="modalLikeBtn">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <button class="action-btn save-btn" id="modalSaveBtn">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                    <button class="action-btn" id="modalDownloadBtn">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Status -->
+    <div class="download-status" id="downloadStatus">
+        <i class="fas fa-check-circle"></i>
+        <span id="downloadStatusText">Download started!</span>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" data-tab="home">
+            <i class="fas fa-home nav-icon"></i>
+            <span class="nav-text">Home</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="search">
+            <i class="fas fa-search nav-icon"></i>
+            <span class="nav-text">Search</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="trending">
+            <i class="fas fa-fire nav-icon"></i>
+            <span class="nav-text">Trending</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="saved">
+            <i class="fas fa-bookmark nav-icon"></i>
+            <span class="nav-text">Saved</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="downloads">
+            <i class="fas fa-download nav-icon"></i>
+            <span class="nav-text">Downloads</span>
+        </a>
+    </nav>
+
+    <script>
+        // Configuration
+        const APP_NAME = "TD Image Download";
+        const PEXELS_API_KEY = "IivntlGyA3ygkCIxhZ0flXMr8geEqxY5ZGgXeJ2MLgatjbwxIASbtQjR";
+        
+        // App State
+        let currentTab = 'home';
+        let currentPage = 1;
+        let isLoading = false;
+        let hasMore = true;
+        let currentSearchTerm = '';
+        let debounceTimer;
+        
+        // DOM Elements
+        const tabContents = {
+            home: document.getElementById('homeTab'),
+            search: document.getElementById('searchTab'),
+            trending: document.getElementById('trendingTab'),
+            saved: document.getElementById('savedTab'),
+            downloads: document.getElementById('downloadsTab')
+        };
+        
+        const grids = {
+            home: document.getElementById('homeGrid'),
+            search: document.getElementById('searchGrid'),
+            trending: document.getElementById('trendingGrid'),
+            saved: document.getElementById('savedGrid'),
+            downloads: document.getElementById('downloadsGrid')
+        };
+        
+        const emptyStates = {
+            home: document.getElementById('homeEmpty'),
+            search: document.getElementById('searchEmpty'),
+            trending: document.getElementById('trendingEmpty'),
+            saved: document.getElementById('savedEmpty'),
+            downloads: document.getElementById('downloadsEmpty')
+        };
+        
+        const loadingStates = {
+            home: document.getElementById('homeLoading'),
+            search: document.getElementById('searchLoading'),
+            trending: document.getElementById('trendingLoading')
+        };
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            initEventListeners();
+            loadHomeContent();
+            updateSavedGrid();
+            updateDownloadsGrid();
+        });
+        
+        // Event Listeners
+        function initEventListeners() {
+            // Bottom navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tab = item.getAttribute('data-tab');
+                    switchTab(tab);
+                });
+            });
+            
+            // Search input with debouncing
+            const searchInput = document.getElementById('searchInput');
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const term = e.target.value.trim();
+                
+                if (term.length >= 2) {
+                    debounceTimer = setTimeout(() => {
+                        currentSearchTerm = term;
+                        switchTab('search');
+                        performSearch(term);
+                    }, 500);
+                } else if (term.length === 0 && currentTab === 'search') {
+                    clearSearch();
+                }
+            });
+            
+            // Video modal
+            document.getElementById('modalClose').addEventListener('click', closeVideoModal);
+            document.getElementById('modalDownloadBtn').addEventListener('click', downloadModalVideo);
+            document.getElementById('modalSaveBtn').addEventListener('click', toggleModalSave);
+            document.getElementById('modalLikeBtn').addEventListener('click', toggleModalLike);
+            
+            // Clear saved button
+            document.getElementById('clearSavedBtn').addEventListener('click', clearSavedItems);
+            
+            // Infinite scroll
+            window.addEventListener('scroll', handleScroll);
+        }
+        
+        // Tab Switching
+        function switchTab(tab) {
+            if (currentTab === tab) return;
+            
+            // Update active tab in navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if (item.getAttribute('data-tab') === tab) {
+                    item.classList.add('active');
+                }
+            });
+            
+            // Hide all tab contents
+            Object.values(tabContents).forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            tabContents[tab].classList.add('active');
+            currentTab = tab;
+            
+            // Load content if needed
+            if (tab === 'home' && grids.home.children.length === 0) {
+                loadHomeContent();
+            } else if (tab === 'trending' && grids.trending.children.length === 0) {
+                loadTrendingContent();
+            } else if (tab === 'saved') {
+                updateSavedGrid();
+            } else if (tab === 'downloads') {
+                updateDownloadsGrid();
+            }
+        }
+        
+        // Load Home Content
+        async function loadHomeContent() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            loadingStates.home.style.display = 'block';
+            emptyStates.home.style.display = 'none';
+            
+            try {
+                const [photosResponse, videosResponse] = await Promise.all([
+                    fetch(`https://api.pexels.com/v1/curated?page=${currentPage}&per_page=15`, {
+                        headers: { Authorization: PEXELS_API_KEY }
+                    }),
+                    fetch(`https://api.pexels.com/videos/popular?page=${currentPage}&per_page=10`, {
+                        headers: { Authorization: PEXELS_API_KEY }
+                    })
+                ]);
+                
+                const photosData = await photosResponse.json();
+                const videosData = await videosResponse.json();
+                
+                if (currentPage === 1) {
+                    grids.home.innerHTML = '';
+                }
+                
+                // Process photos
+                photosData.photos.forEach(photo => {
+                    const card = createPhotoCard(photo);
+                    grids.home.appendChild(card);
+                });
+                
+                // Process videos
+                videosData.videos.forEach(video => {
+                    const card = createVideoCard(video);
+                    grids.home.appendChild(card);
+                });
+                
+                // Update pagination
+                hasMore = photosData.photos.length > 0 || videosData.videos.length > 0;
+                currentPage++;
+                
+                // Show empty state if no content
+                if (grids.home.children.length === 0) {
+                    emptyStates.home.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading home content:', error);
+            } finally {
+                isLoading = false;
+                loadingStates.home.style.display = 'none';
+            }
+        }
+        
+        // Load Trending Content
+        async function loadTrendingContent() {
+            if (isLoading) return;
+            
+            isLoading = true;
+            loadingStates.trending.style.display = 'block';
+            emptyStates.trending.style.display = 'none';
+            
+            try {
+                const response = await fetch('https://api.pexels.com/v1/search?query=nature&per_page=30&page=1', {
+                    headers: { Authorization: PEXELS_API_KEY }
+                });
+                
+                const data = await response.json();
+                grids.trending.innerHTML = '';
+                
+                data.photos.forEach(photo => {
+                    const card = createPhotoCard(photo);
+                    grids.trending.appendChild(card);
+                });
+                
+                // Show empty state if no content
+                if (grids.trending.children.length === 0) {
+                    emptyStates.trending.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading trending content:', error);
+            } finally {
+                isLoading = false;
+                loadingStates.trending.style.display = 'none';
+            }
+        }
+        
+        // Perform Search
+        async function performSearch(term) {
+            if (isLoading) return;
+            
+            isLoading = true;
+            loadingStates.search.style.display = 'block';
+            emptyStates.search.style.display = 'none';
+            grids.search.innerHTML = '';
+            
+            try {
+                // Search for both photos and videos
+                const [photosResponse, videosResponse] = await Promise.all([
+                    fetch(`https://api.pexels.com/v1/search?query=${encodeURIComponent(term)}&per_page=20&page=1`, {
+                        headers: { Authorization: PEXELS_API_KEY }
+                    }),
+                    fetch(`https://api.pexels.com/videos/search?query=${encodeURIComponent(term)}&per_page=15&page=1`, {
+                        headers: { Authorization: PEXELS_API_KEY }
+                    })
+                ]);
+                
+                const photosData = await photosResponse.json();
+                const videosData = await videosResponse.json();
+                
+                // Process photos
+                photosData.photos.forEach(photo => {
+                    const card = createPhotoCard(photo);
+                    grids.search.appendChild(card);
+                });
+                
+                // Process videos
+                videosData.videos.forEach(video => {
+                    const card = createVideoCard(video);
+                    grids.search.appendChild(card);
+                });
+                
+                // Show empty state if no results
+                if (grids.search.children.length === 0) {
+                    emptyStates.search.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error performing search:', error);
+                emptyStates.search.style.display = 'block';
+            } finally {
+                isLoading = false;
+                loadingStates.search.style.display = 'none';
+            }
+        }
+        
+        // Clear Search
+        function clearSearch() {
+            grids.search.innerHTML = '';
+            emptyStates.search.style.display = 'none';
+            loadingStates.search.style.display = 'none';
+        }
+        
+        // Create Photo Card
+        function createPhotoCard(photo) {
+            const card = document.createElement('div');
+            card.className = 'media-card';
+            card.setAttribute('data-id', photo.id);
+            card.setAttribute('data-type', 'photo');
+            
+            const isSaved = checkIfSaved(photo.id, 'photo');
+            const isLiked = checkIfLiked(photo.id);
+            
+            card.innerHTML = `
+                <div class="media-card-image-container">
+                    <span class="media-type-badge">📸 PHOTO</span>
+                    <img 
+                        src="${photo.src.medium}" 
+                        alt="${photo.alt || 'Photo'}" 
+                        class="media-image"
+                        loading="lazy"
+                    >
+                </div>
+                <div class="media-info">
+                    <div class="photographer">
+                        <i class="fas fa-camera"></i>
+                        <span>${photo.photographer}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn like-btn ${isLiked ? 'active' : ''}" data-id="${photo.id}">
+                        <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
+                    </button>
+                    <button class="action-btn save-btn ${isSaved ? 'active' : ''}" data-id="${photo.id}" data-type="photo">
+                        <i class="${isSaved ? 'fas' : 'far'} fa-bookmark"></i>
+                    </button>
+                    <button class="action-btn download-btn" data-url="${photo.src.original}" data-filename="photo-${photo.id}.jpg">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners to buttons
+            const likeBtn = card.querySelector('.like-btn');
+            const saveBtn = card.querySelector('.save-btn');
+            const downloadBtn = card.querySelector('.download-btn');
+            const image = card.querySelector('.media-image');
+            
+            likeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleLike(photo.id, likeBtn);
+            });
+            
+            saveBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSave(photo.id, 'photo', {
+                    url: photo.src.original,
+                    preview: photo.src.medium,
+                    photographer: photo.photographer,
+                    alt: photo.alt || 'Photo'
+                }, saveBtn);
+            });
+            
+            downloadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                downloadFile(photo.src.original, `photo-${photo.id}.jpg`);
+            });
+            
+            image.addEventListener('click', () => {
+                // For photos, we could show a larger version
+                // For simplicity, we're just downloading on image click
+                downloadFile(photo.src.original, `photo-${photo.id}.jpg`);
+            });
+            
+            return card;
+        }
+        
+        // Create Video Card
+        function createVideoCard(video) {
+            const card = document.createElement('div');
+            card.className = 'media-card';
+            card.setAttribute('data-id', video.id);
+            card.setAttribute('data-type', 'video');
+            
+            const videoFile = video.video_files.find(file => file.quality === 'sd' || file.quality === 'hd');
+            const previewImage = video.image || video.video_pictures[0]?.picture || '';
+            
+            const isSaved = checkIfSaved(video.id, 'video');
+            const isLiked = checkIfLiked(video.id);
+            
+            card.innerHTML = `
+                <div class="media-card-image-container">
+                    <span class="media-type-badge">🎥 VIDEO</span>
+                    <img 
+                        src="${previewImage}" 
+                        alt="${video.user.name || 'Video'}" 
+                        class="media-image"
+                        loading="lazy"
+                    >
+                    <div class="play-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 48px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                </div>
+                <div class="media-info">
+                    <div class="photographer">
+                        <i class="fas fa-video"></i>
+                        <span>${video.user.name}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn like-btn ${isLiked ? 'active' : ''}" data-id="${video.id}">
+                        <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>
+                    </button>
+                    <button class="action-btn save-btn ${isSaved ? 'active' : ''}" data-id="${video.id}" data-type="video">
+                        <i class="${isSaved ? 'fas' : 'far'} fa-bookmark"></i>
+                    </button>
+                    <button class="action-btn download-btn" data-url="${videoFile.link}" data-filename="video-${video.id}.mp4">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners to buttons
+            const likeBtn = card.querySelector('.like-btn');
+            const saveBtn = card.querySelector('.save-btn');
+            const downloadBtn = card.querySelector('.download-btn');
+            const imageContainer = card.querySelector('.media-card-image-container');
+            
+            likeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleLike(video.id, likeBtn);
+            });
+            
+            saveBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSave(video.id, 'video', {
+                    url: videoFile.link,
+                    preview: previewImage,
+                    photographer: video.user.name,
+                    duration: video.duration
+                }, saveBtn);
+            });
+            
+            downloadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                downloadFile(videoFile.link, `video-${video.id}.mp4`);
+            });
+            
+            imageContainer.addEventListener('click', () => {
+                openVideoModal(video, videoFile.link);
+            });
+            
+            return card;
+        }
+        
+        // Save System Functions
+        function toggleSave(id, type, data, button) {
+            const savedItems = getSavedItems();
+            const existingIndex = savedItems.findIndex(item => item.id === id && item.type === type);
+            
+            if (existingIndex >= 0) {
+                // Remove from saved
+                savedItems.splice(existingIndex, 1);
+                button.classList.remove('active');
+                button.innerHTML = '<i class="far fa-bookmark"></i>';
+                showNotification('Removed from saved');
+            } else {
+                // Add to saved
+                savedItems.push({
+                    id,
+                    type,
+                    ...data,
+                    dateSaved: new Date().toISOString()
+                });
+                button.classList.add('active');
+                button.innerHTML = '<i class="fas fa-bookmark"></i>';
+                showNotification('Saved to collection');
+            }
+            
+            localStorage.setItem('savedItems', JSON.stringify(savedItems));
+            
+            // Update saved grid if we're on the saved tab
+            if (currentTab === 'saved') {
+                updateSavedGrid();
+            }
+        }
+        
+        function checkIfSaved(id, type) {
+            const savedItems = getSavedItems();
+            return savedItems.some(item => item.id === id && item.type === type);
+        }
+        
+        function getSavedItems() {
+            const saved = localStorage.getItem('savedItems');
+            return saved ? JSON.parse(saved) : [];
+        }
+        
+        function updateSavedGrid() {
+            const savedItems = getSavedItems();
+            grids.saved.innerHTML = '';
+            
+            if (savedItems.length === 0) {
+                emptyStates.saved.style.display = 'block';
+                return;
+            }
+            
+            emptyStates.saved.style.display = 'none';
+            
+            savedItems.forEach(item => {
+                let card;
+                
+                if (item.type === 'photo') {
+                    card = createSavedPhotoCard(item);
+                } else {
+                    card = createSavedVideoCard(item);
+                }
+                
+                grids.saved.appendChild(card);
+            });
+        }
+        
+        function createSavedPhotoCard(item) {
+            const card = document.createElement('div');
+            card.className = 'media-card';
+            card.setAttribute('data-id', item.id);
+            card.setAttribute('data-type', 'photo');
+            
+            card.innerHTML = `
+                <div class="media-card-image-container">
+                    <span class="media-type-badge">📸 SAVED</span>
+                    <img 
+                        src="${item.preview}" 
+                        alt="Saved photo" 
+                        class="media-image"
+                        loading="lazy"
+                    >
+                </div>
+                <div class="media-info">
+                    <div class="photographer">
+                        <i class="fas fa-camera"></i>
+                        <span>${item.photographer}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn remove-btn" data-id="${item.id}" data-type="photo">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="action-btn download-btn" data-url="${item.url}" data-filename="saved-photo-${item.id}.jpg">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners
+            const removeBtn = card.querySelector('.remove-btn');
+            const downloadBtn = card.querySelector('.download-btn');
+            const image = card.querySelector('.media-image');
+            
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeSavedItem(item.id, item.type);
+                card.remove();
+                
+                if (grids.saved.children.length === 0) {
+                    emptyStates.saved.style.display = 'block';
+                }
+            });
+            
+            downloadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                downloadFile(item.url, `saved-photo-${item.id}.jpg`);
+            });
+            
+            image.addEventListener('click', () => {
+                downloadFile(item.url, `saved-photo-${item.id}.jpg`);
+            });
+            
+            return card;
+        }
+        
+        function createSavedVideoCard(item) {
+            const card = document.createElement('div');
+            card.className = 'media-card';
+            card.setAttribute('data-id', item.id);
+            card.setAttribute('data-type', 'video');
+            
+            card.innerHTML = `
+                <div class="media-card-image-container">
+                    <span class="media-type-badge">🎥 SAVED</span>
+                    <img 
+                        src="${item.preview}" 
+                        alt="Saved video" 
+                        class="media-image"
+                        loading="lazy"
+                    >
+                    <div class="play-overlay" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 48px; text-shadow: 0 2px 10px rgba(0,0,0,0.5);">
+                        <i class="fas fa-play-circle"></i>
+                    </div>
+                </div>
+                <div class="media-info">
+                    <div class="photographer">
+                        <i class="fas fa-video"></i>
+                        <span>${item.photographer}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="action-btn remove-btn" data-id="${item.id}" data-type="video">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    <button class="action-btn download-btn" data-url="${item.url}" data-filename="saved-video-${item.id}.mp4">
+                        <i class="fas fa-download"></i>
+                    </button>
+                </div>
+            `;
+            
+            // Add event listeners
+            const removeBtn = card.querySelector('.remove-btn');
+            const downloadBtn = card.querySelector('.download-btn');
+            const imageContainer = card.querySelector('.media-card-image-container');
+            
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                removeSavedItem(item.id, item.type);
+                card.remove();
+                
+                if (grids.saved.children.length === 0) {
+                    emptyStates.saved.style.display = 'block';
+                }
+            });
+            
+            downloadBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                downloadFile(item.url, `saved-video-${item.id}.mp4`);
+            });
+            
+            imageContainer.addEventListener('click', () => {
+                openSavedVideoModal(item);
+            });
+            
+            return card;
+        }
+        
+        function removeSavedItem(id, type) {
+            const savedItems = getSavedItems();
+            const updatedItems = savedItems.filter(item => !(item.id === id && item.type === type));
+            localStorage.setItem('savedItems', JSON.stringify(updatedItems));
+            showNotification('Removed from saved');
+        }
+        
+        function clearSavedItems() {
+            if (confirm('Are you sure you want to clear all saved items?')) {
+                localStorage.removeItem('savedItems');
+                updateSavedGrid();
+                showNotification('All saved items cleared');
+            }
+        }
+        
+        // Like System Functions
+        function toggleLike(id, button) {
+            const likedItems = getLikedItems();
+            const existingIndex = likedItems.indexOf(id);
+            
+            if (existingIndex >= 0) {
+                // Remove like
+                likedItems.splice(existingIndex, 1);
+                button.classList.remove('active');
+                button.innerHTML = '<i class="far fa-heart"></i>';
+            } else {
+                // Add like
+                likedItems.push(id);
+                button.classList.add('active');
+                button.innerHTML = '<i class="fas fa-heart"></i>';
+            }
+            
+            localStorage.setItem('likedItems', JSON.stringify(likedItems));
+        }
+        
+        function checkIfLiked(id) {
+            const likedItems = getLikedItems();
+            return likedItems.includes(id);
+        }
+        
+        function getLikedItems() {
+            const liked = localStorage.getItem('likedItems');
+            return liked ? JSON.parse(liked) : [];
+        }
+        
+        // Download System Functions
+        async function downloadFile(url, filename) {
+            try {
+                showDownloadStatus('Download starting...');
+                
+                // Create a temporary link element
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Save download record
+                saveDownloadRecord(url, filename);
+                
+                showDownloadStatus('Download complete!');
+            } catch (error) {
+                console.error('Download error:', error);
+                showDownloadStatus('Download failed. Trying alternative method...');
+                
+                // Fallback method
+                try {
+                    const response = await fetch(url, { mode: 'cors' });
+                    const blob = await response.blob();
+                    const blobURL = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobURL;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(blobURL);
+                    
+                    // Save download record
+                    saveDownloadRecord(url, filename);
+                    
+                    showDownloadStatus('Download complete!');
+                } catch (fallbackError) {
+                    console.error('Fallback download error:', fallbackError);
+                    showDownloadStatus('Download failed. Please try again.');
+                }
+            }
+        }
+        
+        function saveDownloadRecord(url, filename) {
+            const downloads = getDownloads();
+            downloads.unshift({
+                url,
+                filename,
+                date: new Date().toISOString()
+            });
+            
+            // Keep only last 50 downloads
+            if (downloads.length > 50) {
+                downloads.pop();
+            }
+            
+            localStorage.setItem('downloads', JSON.stringify(downloads));
+            updateDownloadsGrid();
+        }
+        
+        function getDownloads() {
+            const downloads = localStorage.getItem('downloads');
+            return downloads ? JSON.parse(downloads) : [];
+        }
+        
+        function updateDownloadsGrid() {
+            const downloads = getDownloads();
+            grids.downloads.innerHTML = '';
+            
+            if (downloads.length === 0) {
+                emptyStates.downloads.style.display = 'block';
+                return;
+            }
+            
+            emptyStates.downloads.style.display = 'none';
+            
+            downloads.forEach(download => {
+                const card = document.createElement('div');
+                card.className = 'media-card';
+                
+                // Extract ID from filename
+                const id = download.filename.split('-')[1]?.split('.')[0] || 'unknown';
+                
+                card.innerHTML = `
+                    <div class="media-card-image-container">
+                        <span class="media-type-badge">⬇ DOWNLOADED</span>
+                        <div style="background: #f0f0f0; height: 200px; display: flex; align-items: center; justify-content: center; color: #999;">
+                            <i class="fas ${download.filename.includes('.mp4') ? 'fa-video' : 'fa-image'} fa-3x"></i>
+                        </div>
+                    </div>
+                    <div class="media-info">
+                        <div class="photographer">
+                            <i class="fas ${download.filename.includes('.mp4') ? 'fa-video' : 'fa-camera'}"></i>
+                            <span>${download.filename}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #999; margin-top: 5px;">
+                            ${new Date(download.date).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn" onclick="window.open('${download.url}', '_blank')">
+                            <i class="fas fa-external-link-alt"></i>
+                        </button>
+                        <button class="action-btn download-btn" data-url="${download.url}" data-filename="${download.filename}">
+                            <i class="fas fa-redo"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Add event listener for re-download
+                const downloadBtn = card.querySelector('.download-btn');
+                downloadBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    downloadFile(download.url, download.filename);
+                });
+                
+                grids.downloads.appendChild(card);
+            });
+        }
+        
+        // Video Modal Functions
+        let currentVideoData = null;
+        
+        function openVideoModal(video, videoUrl) {
+            currentVideoData = { video, videoUrl };
+            const modal = document.getElementById('videoModal');
+            const videoElement = document.getElementById('modalVideo');
+            const photographerElement = document.getElementById('modalPhotographer');
+            const saveBtn = document.getElementById('modalSaveBtn');
+            const likeBtn = document.getElementById('modalLikeBtn');
+            
+            videoElement.src = videoUrl;
+            photographerElement.textContent = `Video by ${video.user.name}`;
+            
+            // Update button states
+            const isSaved = checkIfSaved(video.id, 'video');
+            const isLiked = checkIfLiked(video.id);
+            
+            saveBtn.className = `action-btn save-btn ${isSaved ? 'active' : ''}`;
+            saveBtn.innerHTML = `<i class="${isSaved ? 'fas' : 'far'} fa-bookmark"></i>`;
+            
+            likeBtn.className = `action-btn like-btn ${isLiked ? 'active' : ''}`;
+            likeBtn.innerHTML = `<i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>`;
+            
+            modal.classList.add('active');
+        }
+        
+        function openSavedVideoModal(item) {
+            currentVideoData = { item };
+            const modal = document.getElementById('videoModal');
+            const videoElement = document.getElementById('modalVideo');
+            const photographerElement = document.getElementById('modalPhotographer');
+            const saveBtn = document.getElementById('modalSaveBtn');
+            const likeBtn = document.getElementById('modalLikeBtn');
+            
+            videoElement.src = item.url;
+            photographerElement.textContent = `Video by ${item.photographer}`;
+            
+            // Update button states
+            const isSaved = checkIfSaved(item.id, 'video');
+            const isLiked = checkIfLiked(item.id);
+            
+            saveBtn.className = `action-btn save-btn ${isSaved ? 'active' : ''}`;
+            saveBtn.innerHTML = `<i class="${isSaved ? 'fas' : 'far'} fa-bookmark"></i>`;
+            
+            likeBtn.className = `action-btn like-btn ${isLiked ? 'active' : ''}`;
+            likeBtn.innerHTML = `<i class="${isLiked ? 'fas' : 'far'} fa-heart"></i>`;
+            
+            modal.classList.add('active');
+        }
+        
+        function closeVideoModal() {
+            const modal = document.getElementById('videoModal');
+            const videoElement = document.getElementById('modalVideo');
+            
+            videoElement.pause();
+            videoElement.src = '';
+            modal.classList.remove('active');
+            currentVideoData = null;
+        }
+        
+        function downloadModalVideo() {
+            if (!currentVideoData) return;
+            
+            let url, filename;
+            
+            if (currentVideoData.video) {
+                const videoFile = currentVideoData.video.video_files.find(file => file.quality === 'sd' || file.quality === 'hd');
+                url = videoFile.link;
+                filename = `video-${currentVideoData.video.id}.mp4`;
+            } else if (currentVideoData.item) {
+                url = currentVideoData.item.url;
+                filename = `saved-video-${currentVideoData.item.id}.mp4`;
+            }
+            
+            if (url && filename) {
+                downloadFile(url, filename);
+            }
+        }
+        
+        function toggleModalSave() {
+            if (!currentVideoData) return;
+            
+            const saveBtn = document.getElementById('modalSaveBtn');
+            let id, type, data;
+            
+            if (currentVideoData.video) {
+                const video = currentVideoData.video;
+                const videoFile = video.video_files.find(file => file.quality === 'sd' || file.quality === 'hd');
+                const previewImage = video.image || video.video_pictures[0]?.picture || '';
+                
+                id = video.id;
+                type = 'video';
+                data = {
+                    url: videoFile.link,
+                    preview: previewImage,
+                    photographer: video.user.name,
+                    duration: video.duration
+                };
+            } else if (currentVideoData.item) {
+                const item = currentVideoData.item;
+                id = item.id;
+                type = 'video';
+                data = {
+                    url: item.url,
+                    preview: item.preview,
+                    photographer: item.photographer,
+                    duration: item.duration
+                };
+            }
+            
+            toggleSave(id, type, data, saveBtn);
+        }
+        
+        function toggleModalLike() {
+            if (!currentVideoData) return;
+            
+            const likeBtn = document.getElementById('modalLikeBtn');
+            let id;
+            
+            if (currentVideoData.video) {
+                id = currentVideoData.video.id;
+            } else if (currentVideoData.item) {
+                id = currentVideoData.item.id;
+            }
+            
+            toggleLike(id, likeBtn);
+        }
+        
+        // UI Helper Functions
+        function showNotification(message) {
+            // For now, we'll use the download status element
+            showDownloadStatus(message);
+        }
+        
+        function showDownloadStatus(message) {
+            const statusElement = document.getElementById('downloadStatus');
+            const statusText = document.getElementById('downloadStatusText');
+            
+            statusText.textContent = message;
+            statusElement.classList.add('show');
+            
+            setTimeout(() => {
+                statusElement.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Infinite Scroll
+        function handleScroll() {
+            if (isLoading || !hasMore) return;
+            
+            const scrollPosition = window.innerHeight + window.scrollY;
+            const pageHeight = document.documentElement.scrollHeight - 100;
+            
+            if (scrollPosition >= pageHeight) {
+                if (currentTab === 'home') {
+                    loadHomeContent();
+                }
+            }
+        }
+        
+        // Close modal on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeVideoModal();
+            }
+        });
+    </script>
+</body>
+</html>
